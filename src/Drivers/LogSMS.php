@@ -32,8 +32,9 @@ class LogSMS implements DriverInterface
      */
     public function send(OutgoingMessage $message)
     {
+        $text = $message->getText();
         foreach ($message->getTo() as $number) {
-            $this->logger->notice("Sending SMS message to: $number");
+            $this->logger->notice("Sending SMS message to: $number, Message: $text");
         }
     }
 }
