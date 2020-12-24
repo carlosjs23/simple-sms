@@ -94,7 +94,7 @@ trait MakesRequests
      *
      * @param string $username
      */
-    public function setUser($username)
+    public function setUser(string $username)
     {
         $this->auth['username'] = $username;
     }
@@ -104,7 +104,7 @@ trait MakesRequests
      *
      * @param string $password
      */
-    public function setPassword($password)
+    public function setPassword(string $password)
     {
         $this->auth['password'] = $password;
     }

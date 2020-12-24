@@ -3,13 +3,12 @@
 namespace SimpleSoftwareIO\SMS\Drivers;
 
 use GuzzleHttp\Client;
-use SimpleSoftwareIO\SMS\DoesNotReceive;
 use SimpleSoftwareIO\SMS\MakesRequests;
 use SimpleSoftwareIO\SMS\OutgoingMessage;
 
 class LabsMobileSMS extends AbstractSMS implements DriverInterface
 {
-    use DoesNotReceive, MakesRequests;
+    use MakesRequests;
 
     /**
      * The Guzzle HTTP Client.
@@ -26,7 +25,7 @@ class LabsMobileSMS extends AbstractSMS implements DriverInterface
     protected $apiBase = 'https://api.labsmobile.com/get/send.php';
 
     /**
-     * Constructs the MozeoSMS Instance.
+     * Constructs the LabsMobileSMS Instance.
      *
      * @param Client $client The guzzle client
      */

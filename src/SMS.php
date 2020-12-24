@@ -4,10 +4,11 @@ namespace SimpleSoftwareIO\SMS;
 
 use Closure;
 use Illuminate\Container\Container;
+use Illuminate\Queue\Jobs\Job;
 use Illuminate\Queue\QueueManager;
 use Illuminate\Support\Str;
+use Opis\Closure\SerializableClosure;
 use SimpleSoftwareIO\SMS\Drivers\DriverInterface;
-use SuperClosure\Serializer;
 
 class SMS
 {
@@ -53,11 +54,12 @@ class SMS
      * Changes the set SMS driver.
      *
      * @param $driver
+     * @throws \Illuminate\Contracts\Container\BindingResolutionException
      */
     public function driver($driver)
     {
-        $this->container['sms.sender'] = $this->container->share(function ($app) use ($driver) {
-            return (new DriverManager($app))->driver($driver);
+        $this->container['sms.sender'] = $this->container->make(function ($container) use ($driver) {
+            return (new DriverManager($container))->driver($driver);
         });
 
         $this->driver = $this->container['sms.sender'];
@@ -127,12 +129,12 @@ class SMS
     /**
      * Queues a SMS message.
      *
-     * @param string          $view     The desired view.
-     * @param array           $data     An array of data to fill the view.
+     * @param string $view The desired view.
+     * @param array $data An array of data to fill the view.
      * @param \Closure|string $callback The callback to run on the Message class.
-     * @param null|string     $queue    The desired queue to push the message to.
+     * @param null|string $queue The desired queue to push the message to.
      */
-    public function queue($view, $data, $callback, $queue = null)
+    public function queue(string $view, array $data, $callback, $queue = null)
     {
         $callback = $this->buildQueueCallable($callback);
 
@@ -142,12 +144,12 @@ class SMS
     /**
      * Queues a SMS message to a given queue.
      *
-     * @param null|string     $queue    The desired queue to push the message to.
-     * @param string          $view     The desired view.
-     * @param array           $data     An array of data to fill the view.
+     * @param null|string $queue The desired queue to push the message to.
+     * @param string $view The desired view.
+     * @param array $data An array of data to fill the view.
      * @param \Closure|string $callback The callback to run on the Message class.
      */
-    public function queueOn($queue, $view, $data, $callback)
+    public function queueOn(?string $queue, string $view, array $data, $callback)
     {
         $this->queue($view, $data, $callback, $queue);
     }
@@ -155,13 +157,13 @@ class SMS
     /**
      * Queues a message to be sent a later time.
      *
-     * @param int             $delay    The desired delay in seconds
-     * @param string          $view     The desired view.
-     * @param array           $data     An array of data to fill the view.
+     * @param int $delay The desired delay in seconds
+     * @param string $view The desired view.
+     * @param array $data An array of data to fill the view.
      * @param \Closure|string $callback The callback to run on the Message class.
-     * @param null|string     $queue    The desired queue to push the message to.
+     * @param null|string $queue The desired queue to push the message to.
      */
-    public function later($delay, $view, $data, $callback, $queue = null)
+    public function later(int $delay, string $view, array $data, $callback, $queue = null)
     {
         $callback = $this->buildQueueCallable($callback);
 
@@ -171,13 +173,13 @@ class SMS
     /**
      * Queues a message to be sent a later time on a given queue.
      *
-     * @param null|string     $queue    The desired queue to push the message to.
-     * @param int             $delay    The desired delay in seconds
-     * @param string          $view     The desired view.
-     * @param array           $data     An array of data to fill the view.
+     * @param null|string $queue The desired queue to push the message to.
+     * @param int $delay The desired delay in seconds
+     * @param string $view The desired view.
+     * @param array $data An array of data to fill the view.
      * @param \Closure|string $callback The callback to run on the Message class.
      */
-    public function laterOn($queue, $delay, $view, $data, $callback)
+    public function laterOn(?string $queue, int $delay, string $view, array $data, $callback)
     {
         $this->later($delay, $view, $data, $callback, $queue);
     }
@@ -195,16 +197,16 @@ class SMS
             return $callback;
         }
 
-        return (new Serializer())->serialize($callback);
+        return serialize(new SerializableClosure($callback));
     }
 
     /**
      * Handles a queue message.
      *
      * @param \Illuminate\Queue\Jobs\Job $job
-     * @param array                      $data
+     * @param array $data
      */
-    public function handleQueuedMessage($job, $data)
+    public function handleQueuedMessage(Job $job, array $data)
     {
         $this->send($data['view'], $data['data'], $this->getQueuedCallable($data));
 
@@ -232,47 +234,10 @@ class SMS
      *
      * @param \Illuminate\Queue\QueueManager $queue
      *
-     * @return $this
+     * @return void
      */
     public function setQueue(QueueManager $queue)
     {
         $this->queue = $queue;
-    }
-
-    /**
-     * Receives a SMS via a push request.
-     *
-     * @return IncomingMessage
-     */
-    public function receive()
-    {
-        //Passes all of the request onto the driver.
-        $raw = $this->container['Illuminate\Support\Facades\Input'];
-
-        return $this->driver->receive($raw);
-    }
-
-    /**
-     * Queries the provider for a list of messages.
-     *
-     * @param array $options The options to pass onto a provider.  See each provider for a list of options.
-     *
-     * @return array Returns an array of IncomingMessage objects.
-     */
-    public function checkMessages(array $options = [])
-    {
-        return $this->driver->checkMessages($options);
-    }
-
-    /**
-     * Gets a message by it's ID.
-     *
-     * @param $messageId The requested messageId.
-     *
-     * @return IncomingMessage
-     */
-    public function getMessage($messageId)
-    {
-        return $this->driver->getMessage($messageId);
     }
 }

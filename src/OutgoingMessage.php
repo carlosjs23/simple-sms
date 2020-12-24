@@ -2,14 +2,14 @@
 
 namespace SimpleSoftwareIO\SMS;
 
-use Illuminate\View\Factory;
+use Illuminate\Contracts\View\Factory;
 
 class OutgoingMessage
 {
     /**
      * The Illuminate view factory.
      *
-     * @var \Illuminate\View\Factory
+     * @var \Illuminate\Contracts\View\Factory
      */
     protected $views;
 
@@ -68,7 +68,7 @@ class OutgoingMessage
     /**
      * Composes a message.
      *
-     * @return \Illuminate\View\Factory
+     * @return string
      */
     public function composeMessage()
     {
@@ -86,7 +86,7 @@ class OutgoingMessage
      *
      * @param string $number Holds the number that messages
      */
-    public function from($number)
+    public function from(string $number)
     {
         $this->from = $number;
     }
@@ -104,12 +104,12 @@ class OutgoingMessage
     /**
      * Sets the to addresses.
      *
-     * @param string $number  Holds the number that a message will be sent to.
-     * @param string $carrier The carrier the number is on.
+     * @param string $number Holds the number that a message will be sent to.
+     * @param string|null $carrier The carrier the number is on.
      *
      * @return $this
      */
-    public function to($number, $carrier = null)
+    public function to(string $number, string $carrier = null)
     {
         $this->to[] = [
             'number'  => $number,
@@ -149,7 +149,7 @@ class OutgoingMessage
      *
      * @param string $view The desired view file
      */
-    public function view($view)
+    public function view(string $view)
     {
         $this->view = $view;
     }
@@ -159,7 +159,7 @@ class OutgoingMessage
      *
      * @param array $data An array of values to be passed to the View Factory.
      */
-    public function data($data)
+    public function data(array $data)
     {
         $this->data = $data;
     }
@@ -189,7 +189,7 @@ class OutgoingMessage
      *
      * @param string $image Path to image.
      */
-    public function attachImage($image)
+    public function attachImage(string $image)
     {
         $this->mms = true;
 

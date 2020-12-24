@@ -2,13 +2,11 @@
 
 namespace SimpleSoftwareIO\SMS\Drivers;
 
-use Illuminate\Log\Writer;
-use SimpleSoftwareIO\SMS\DoesNotReceive;
+use Illuminate\Log\Logger;
 use SimpleSoftwareIO\SMS\OutgoingMessage;
 
 class LogSMS implements DriverInterface
 {
-    use DoesNotReceive;
 
     /**
      * Laravel Logger.
@@ -20,9 +18,9 @@ class LogSMS implements DriverInterface
     /**
      * Create the CallFire instance.
      *
-     * @param Illuminate\Log\Writer $logger
+     * @param \Illuminate\Log\Logger $logger
      */
-    public function __construct(Writer $logger)
+    public function __construct(Logger $logger)
     {
         $this->logger = $logger;
     }
@@ -37,24 +35,5 @@ class LogSMS implements DriverInterface
         foreach ($message->getTo() as $number) {
             $this->logger->notice("Sending SMS message to: $number");
         }
-    }
-
-    /**
-     * Creates many IncomingMessage objects and sets all of the properties.
-     *
-     * @param $rawMessage
-     *
-     * @return mixed
-     */
-    protected function processReceive($rawMessage)
-    {
-        $incomingMessage = $this->createIncomingMessage();
-        $incomingMessage->setRaw($rawMessage);
-        $incomingMessage->setFrom((string) $rawMessage->FromNumber);
-        $incomingMessage->setMessage((string) $rawMessage->TextRecord->Message);
-        $incomingMessage->setId((string) $rawMessage['id']);
-        $incomingMessage->setTo((string) $rawMessage->ToNumber);
-
-        return $incomingMessage;
     }
 }

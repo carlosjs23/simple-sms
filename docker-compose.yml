@@ -1,0 +1,15 @@
+version: "3.7"
+services:
+  src:
+    build:
+      args:
+        user: carlos
+        uid: 1000
+      context: .
+      dockerfile: Dockerfile
+    image: simple-sms
+    container_name: simplesms-src
+    restart: unless-stopped
+    working_dir: /var/www/simple-sms
+    volumes:
+      - .:/var/www/simple-sms:z
