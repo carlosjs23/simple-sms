@@ -28,14 +28,14 @@ class SMSServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->app->singleton('sms', function ($app) {
+        $this->app->singleton('sms', function ($container) {
             $this->registerSender();
-            $sms = new SMS($app['sms.sender']);
-            $this->setSMSDependencies($sms, $app);
+            $sms = new SMS($container['sms.sender']);
+            $this->setSMSDependencies($sms, $container);
 
             //Set the from setting
-            if ($app['config']->has('sms.from')) {
-                $sms->alwaysFrom($app['config']['sms']['from']);
+            if ($container['config']->has('sms.from')) {
+                $sms->alwaysFrom($container['config']['sms']['from']);
             }
 
             return $sms;
@@ -47,8 +47,8 @@ class SMSServiceProvider extends ServiceProvider
      */
     public function registerSender()
     {
-        $this->app->singleton('sms.sender', function ($app) {
-            return (new DriverManager($app))->driver();
+        $this->app->singleton('sms.sender', function ($container) {
+            return (new DriverManager($container))->driver();
         });
     }
 
@@ -56,12 +56,12 @@ class SMSServiceProvider extends ServiceProvider
      * Set a few dependencies on the sms instance.
      *
      * @param SMS $sms
-     * @param  $app
+     * @param  $container
      */
-    private function setSMSDependencies($sms, $app)
+    private function setSMSDependencies($sms, $container)
     {
-        $sms->setContainer($app);
-        $sms->setQueue($app['queue']);
+        $sms->setContainer($container);
+        $sms->setQueue($container['queue']);
     }
 
     /**
