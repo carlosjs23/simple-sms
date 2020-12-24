@@ -68,19 +68,17 @@ class SMS
     /**
      * Send a SMS.
      *
-     * @param string   $view     The desired view.
-     * @param array    $data     The data that needs to be passed into the view.
+     * @param string $text The text to be send.
      * @param \Closure $callback The methods that you wish to fun on the message.
      *
      * @return \SimpleSoftwareIO\SMS\OutgoingMessage The outgoing message that was sent.
      */
-    public function send($view, $data, $callback)
+    public function send(string $text, Closure $callback)
     {
-        $data['message'] = $message = $this->createOutgoingMessage();
+        $message = $this->createOutgoingMessage();
 
         //We need to set the properties so that we can later pass this onto the Illuminate Mailer class if the e-mail gateway is used.
-        $message->view($view);
-        $message->data($data);
+        $message->text($text);
 
         call_user_func($callback, $message);
 
@@ -96,7 +94,7 @@ class SMS
      */
     protected function createOutgoingMessage()
     {
-        $message = new OutgoingMessage($this->container['view']);
+        $message = new OutgoingMessage();
 
         //If a from address is set, pass it along to the message class.
         if (isset($this->from)) {
@@ -129,45 +127,42 @@ class SMS
     /**
      * Queues a SMS message.
      *
-     * @param string $view The desired view.
-     * @param array $data An array of data to fill the view.
+     * @param string $text
      * @param \Closure|string $callback The callback to run on the Message class.
      * @param null|string $queue The desired queue to push the message to.
      */
-    public function queue(string $view, array $data, $callback, $queue = null)
+    public function queue(string $text, $callback, $queue = null)
     {
         $callback = $this->buildQueueCallable($callback);
 
-        $this->queue->push('sms@handleQueuedMessage', compact('view', 'data', 'callback'), $queue);
+        $this->queue->push('sms@handleQueuedMessage', compact('text', 'callback'), $queue);
     }
 
     /**
      * Queues a SMS message to a given queue.
      *
      * @param null|string $queue The desired queue to push the message to.
-     * @param string $view The desired view.
-     * @param array $data An array of data to fill the view.
+     * @param string $text
      * @param \Closure|string $callback The callback to run on the Message class.
      */
-    public function queueOn(?string $queue, string $view, array $data, $callback)
+    public function queueOn(?string $queue, string $text, $callback)
     {
-        $this->queue($view, $data, $callback, $queue);
+        $this->queue($text, $callback, $queue);
     }
 
     /**
      * Queues a message to be sent a later time.
      *
      * @param int $delay The desired delay in seconds
-     * @param string $view The desired view.
-     * @param array $data An array of data to fill the view.
+     * @param string $text
      * @param \Closure|string $callback The callback to run on the Message class.
      * @param null|string $queue The desired queue to push the message to.
      */
-    public function later(int $delay, string $view, array $data, $callback, $queue = null)
+    public function later(int $delay, string $text, $callback, $queue = null)
     {
         $callback = $this->buildQueueCallable($callback);
 
-        $this->queue->later($delay, 'sms@handleQueuedMessage', compact('view', 'data', 'callback'), $queue);
+        $this->queue->later($delay, 'sms@handleQueuedMessage', compact('text', 'callback'), $queue);
     }
 
     /**
@@ -175,13 +170,12 @@ class SMS
      *
      * @param null|string $queue The desired queue to push the message to.
      * @param int $delay The desired delay in seconds
-     * @param string $view The desired view.
-     * @param array $data An array of data to fill the view.
+     * @param string $text
      * @param \Closure|string $callback The callback to run on the Message class.
      */
-    public function laterOn(?string $queue, int $delay, string $view, array $data, $callback)
+    public function laterOn(?string $queue, int $delay, string $text, $callback)
     {
-        $this->later($delay, $view, $data, $callback, $queue);
+        $this->later($delay, $text, $callback, $queue);
     }
 
     /**
@@ -208,7 +202,7 @@ class SMS
      */
     public function handleQueuedMessage(Job $job, array $data)
     {
-        $this->send($data['view'], $data['data'], $this->getQueuedCallable($data));
+        $this->send($data['text'], $this->getQueuedCallable($data));
 
         $job->delete();
     }

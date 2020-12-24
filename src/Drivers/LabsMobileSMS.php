@@ -41,7 +41,7 @@ class LabsMobileSMS extends AbstractSMS implements DriverInterface
      */
     public function send(OutgoingMessage $message)
     {
-        $composeMessage = $message->composeMessage();
+        $composeMessage = $message->getText();
 
         foreach ($message->getTo() as $to) {
             $data = [
